@@ -7,19 +7,20 @@ import time
 ESP_WS_URL = "ws://192.168.4.1:81"
 
 def main(page: ft.Page):
-    # EKRAN UYANIK KALMA (0.21.2 Uyumlu)
+    # EKRAN UYANIK KALMA
     try:
         page.keep_on = True
     except Exception:
         pass
 
-    page.title = "GOL MONİTÖRÜ & SKORBORD"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.title = "GOL MONİTÖRÜ & OYUNCU YÖNETİMİ"
+    page.vertical_alignment = ft.MainAxisAlignment.START
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = ft.colors.GREEN_900
+    page.scroll = ft.ScrollMode.AUTO
 
-    # LOKAL SES BİLEŞENİ
+    # SES BİLEŞENİ
     goal_audio = None
     try:
         goal_audio = ft.Audio(
@@ -31,89 +32,228 @@ def main(page: ft.Page):
     except Exception as e:
         print("Ses yükleme uyarısı:", e)
 
+    # STATE DEĞİŞKENLERİ
     was_alert = False
-    goal_count = 0
+    custom_threshold = 600  # Varsayılan Dinamik Eşik
+    
+    # Oyuncu Yapısı: {"İsim": Skor}
+    players = {"Oyuncu 1": 0, "Oyuncu 2": 0}
+    selected_player = ["Oyuncu 1"]  # Aktif Gol Yazılacak Oyuncu
 
+    # --- UI BİLEŞENLERİ ---
+    
     stadium_icon = ft.Icon(
         ft.icons.SPORTS_SOCCER,
-        size=80,
+        size=50,
         color=ft.colors.WHITE
     )
 
     title_text = ft.Text(
         "STADYUM GOL MONİTÖRÜ",
-        size=22,
+        size=20,
         weight=ft.FontWeight.BOLD,
         color=ft.colors.WHITE70
     )
 
-    score_display = ft.Text(
-        f"SKOR: {goal_count}",
-        size=44,
-        weight=ft.FontWeight.BOLD,
-        color=ft.colors.AMBER_300
-    )
-
     status_text = ft.Text(
         "MAÇ DEVAM EDİYOR...",
-        size=18,
+        size=15,
         weight=ft.FontWeight.BOLD,
         color=ft.colors.WHITE
     )
 
-    val_text = ft.Text("---", size=70, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE)
-    threshold_text = ft.Text("GOL EŞİĞİ: 600", size=13, color=ft.colors.WHITE70)
+    # DİNAMİK SENSÖR & EŞİK KARTI
+    val_text = ft.Text("---", size=45, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE)
+    threshold_label = ft.Text(f"GOL EŞİĞİ: {custom_threshold}", size=13, weight=ft.FontWeight.BOLD, color=ft.colors.AMBER_300)
+
+    def update_threshold(delta):
+        nonlocal custom_threshold
+        custom_threshold = max(50, min(1023, custom_threshold + delta))
+        threshold_label.value = f"GOL EŞİĞİ: {custom_threshold}"
+        page.update()
+
+    threshold_controls = ft.Row(
+        [
+            ft.IconButton(
+                ft.icons.REMOVE_CIRCLE_OUTLINE,
+                icon_color=ft.colors.RED_400,
+                on_click=lambda e: update_threshold(-50)
+            ),
+            threshold_label,
+            ft.IconButton(
+                ft.icons.ADD_CIRCLE_OUTLINE,
+                icon_color=ft.colors.GREEN_400,
+                on_click=lambda e: update_threshold(50)
+            ),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER
+    )
 
     score_card = ft.Container(
         content=ft.Column(
             [
-                ft.Text("CANLI A0 SENSÖR DEĞERİ", size=13, color=ft.colors.WHITE60),
+                ft.Text("CANLI A0 SENSÖR DEĞERİ", size=11, color=ft.colors.WHITE60),
                 val_text,
-                threshold_text,
+                threshold_controls,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         bgcolor=ft.colors.BLACK45,
-        padding=20,
-        border_radius=20,
-        width=300,
+        padding=12,
+        border_radius=15,
+        width=320,
         alignment=ft.alignment.center
     )
 
-    def reset_score(e):
-        nonlocal goal_count
-        goal_count = 0
-        score_display.value = f"SKOR: {goal_count}"
+    # SEÇİLİ OYUNCU BİLGİ ETİKETİ
+    active_player_text = ft.Text(
+        f"⚽ GOL YAZILACAK: {selected_player[0]}",
+        size=15,
+        weight=ft.FontWeight.BOLD,
+        color=ft.colors.AMBER_300
+    )
+
+    player_list_column = ft.Column(spacing=8)
+
+    def select_player_action(p_name):
+        selected_player[0] = p_name
+        active_player_text.value = f"⚽ GOL YAZILACAK: {p_name}"
+        render_players_ui()
+
+    def render_players_ui():
+        player_list_column.controls.clear()
+        
+        # Seçili oyuncunun listede kalmasını kontrol et
+        if selected_player[0] not in players and len(players) > 0:
+            selected_player[0] = list(players.keys())[0]
+            active_player_text.value = f"⚽ GOL YAZILACAK: {selected_player[0]}"
+        elif len(players) == 0:
+            active_player_text.value = "⚠️ OYUNCU EKLENMEDİ"
+
+        for p_name, score in players.items():
+            is_selected = (p_name == selected_player[0])
+            
+            select_btn = ft.ElevatedButton(
+                "SEÇİLİ" if is_selected else "SEÇ",
+                icon=ft.icons.CHECK_CIRCLE if is_selected else ft.icons.RADIO_BUTTON_UNCHECKED,
+                style=ft.ButtonStyle(
+                    color=ft.colors.BLACK if is_selected else ft.colors.WHITE,
+                    bgcolor=ft.colors.AMBER_400 if is_selected else ft.colors.WHITE24,
+                ),
+                on_click=lambda e, name=p_name: select_player_action(name)
+            )
+
+            player_list_column.controls.append(
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Column(
+                                [
+                                    ft.Text(p_name, size=16, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
+                                    ft.Text(f"SKOR: {score}", size=14, weight=ft.FontWeight.BOLD, color=ft.colors.AMBER_200),
+                                ],
+                                spacing=2
+                            ),
+                            ft.Row(
+                                [
+                                    select_btn,
+                                    ft.IconButton(
+                                        ft.icons.DELETE_OUTLINE,
+                                        icon_color=ft.colors.RED_400,
+                                        data=p_name,
+                                        on_click=delete_player
+                                    )
+                                ],
+                                spacing=5
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                    ),
+                    bgcolor=ft.colors.GREEN_800 if is_selected else ft.colors.BLACK26,
+                    padding=ft.padding.symmetric(horizontal=12, vertical=8),
+                    border_radius=12,
+                    # BURASI DÜZELTİLDİ: ft.border.all (küçük 'b')
+                    border=ft.border.all(2, ft.colors.AMBER_400) if is_selected else None,
+                    width=320
+                )
+            )
         page.update()
 
+    def delete_player(e):
+        p_name = e.control.data
+        if p_name in players:
+            del players[p_name]
+            render_players_ui()
+
+    new_player_input = ft.TextField(
+        hint_text="Yeni Oyuncu Adı",
+        width=200,
+        height=45,
+        text_size=14
+    )
+
+    def add_player(e):
+        name = new_player_input.value.strip()
+        if name and name not in players:
+            players[name] = 0
+            new_player_input.value = ""
+            if len(players) == 1:
+                selected_player[0] = name
+            render_players_ui()
+
+    add_player_row = ft.Row(
+        [
+            new_player_input,
+            ft.ElevatedButton(
+                "Ekle",
+                icon=ft.icons.ADD,
+                style=ft.ButtonStyle(bgcolor=ft.colors.BLUE_700, color=ft.colors.WHITE),
+                on_click=add_player
+            )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER
+    )
+
+    def reset_all_scores(e):
+        for p in players:
+            players[p] = 0
+        render_players_ui()
+
     reset_button = ft.ElevatedButton(
-        text="SKORU SIFIRLA",
+        text="TÜM SKORLARI SIFIRLA",
         icon=ft.icons.REFRESH,
         style=ft.ButtonStyle(
             color=ft.colors.WHITE,
             bgcolor=ft.colors.RED_800,
-            padding=15
+            padding=12
         ),
-        on_click=reset_score
+        on_click=reset_all_scores
     )
+
+    # İLK UI RENDER
+    render_players_ui()
 
     page.add(
         stadium_icon,
         title_text,
-        score_display,
-        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
         status_text,
-        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=5, color=ft.colors.TRANSPARENT),
         score_card,
-        ft.Divider(height=20, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        active_player_text,
+        ft.Divider(height=5, color=ft.colors.TRANSPARENT),
+        player_list_column,
+        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        add_player_row,
+        ft.Divider(height=15, color=ft.colors.TRANSPARENT),
         reset_button
     )
 
-    def trigger_goal_ui(raw_val, threshold, is_alert):
-        nonlocal was_alert, goal_count
+    # --- GOL / SENSÖR MANTIĞI ---
+    def trigger_goal_ui(raw_val, is_alert):
+        nonlocal was_alert
 
         val_text.value = str(raw_val)
-        threshold_text.value = f"GOL EŞİĞİ: {threshold}"
 
         if is_alert:
             page.bgcolor = ft.colors.GREEN_700
@@ -123,10 +263,14 @@ def main(page: ft.Page):
 
             if not was_alert:
                 was_alert = True
-                goal_count += 1
-                score_display.value = f"SKOR: {goal_count}"
                 
-                # SESİ ÇAL (Güvenli Tetikleme)
+                # Seçili Oyuncunun Skorunu Arttır
+                curr_p = selected_player[0]
+                if curr_p and curr_p in players:
+                    players[curr_p] += 1
+                    render_players_ui()
+
+                # Ses Çal
                 if goal_audio:
                     try:
                         goal_audio.play()
@@ -148,6 +292,7 @@ def main(page: ft.Page):
         val_text.value = "---"
         page.update()
 
+    # --- WEBSOCKET ARKA PLAN DİNLEYİCİSİ ---
     def websocket_worker():
         while True:
             try:
@@ -155,9 +300,11 @@ def main(page: ft.Page):
                     try:
                         data = json.loads(message)
                         raw_val = data.get("raw_value", 0)
-                        threshold = data.get("threshold", 600)
-                        is_alert = data.get("alert", False)
-                        trigger_goal_ui(raw_val, threshold, is_alert)
+                        
+                        # Eşik kontrolü dinamik 'custom_threshold' ile kıyaslanıyor
+                        is_alert = raw_val >= custom_threshold
+
+                        trigger_goal_ui(raw_val, is_alert)
                     except Exception:
                         pass
 
@@ -177,6 +324,5 @@ def main(page: ft.Page):
     ws_thread = threading.Thread(target=websocket_worker, daemon=True)
     ws_thread.start()
 
-# assets_dir="." ekleyerek ses dosyasının okunmasını garantiliyoruz
 if __name__ == "__main__":
     ft.app(target=main, assets_dir=".")
