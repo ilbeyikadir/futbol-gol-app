@@ -8,7 +8,7 @@ import time
 ESP_WS_URL = "ws://192.168.4.1:81"
 
 def main(page: ft.Page):
-    # 🌟 EKRANIN HİÇ KAPANMAMASINI (UYANIK KALMASINI) SAĞLAR
+    # 🌟 EKRANIN KAPANMASINI / UYKUYA GEÇMESİNİ ENGELLER
     page.keep_on = True
 
     # Sayfa Genel Yapılandırması
@@ -16,9 +16,9 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = ft.colors.GREEN_900  # Stadyum Çim Yeşili
+    page.bgcolor = ft.Colors.GREEN_900  # Stadyum Çim Yeşili
 
-    # LOKAL SES OYNATICI (Doğrudan Kök Dizindeki gol.mp3)
+    # LOKAL SES OYNATICI (Kök dizindeki gol.mp3)
     goal_audio = ft.Audio(
         src="gol.mp3",
         autoplay=False
@@ -27,21 +27,21 @@ def main(page: ft.Page):
 
     # Durum Takip Değişkenleri
     is_running = True
-    was_alert = False  # Gol durumunun sürekli değil 1 kez tetiklenmesi için
+    was_alert = False  # Gol durumunun 1 kez tetiklenmesi için
     goal_count = 0     # Canlı Gol Sayacı
 
     # --- UI BİLEŞENLERİ ---
     stadium_icon = ft.Icon(
-        name=ft.icons.SPORTS_SOCCER,
+        name=ft.Icons.SPORTS_SOCCER,
         size=80,
-        color=ft.colors.WHITE
+        color=ft.Colors.WHITE
     )
 
     title_text = ft.Text(
         "STADYUM GOL MONİTÖRÜ",
         size=22,
         weight=ft.FontWeight.BOLD,
-        color=ft.colors.WHITE70
+        color=ft.Colors.WHITE70
     )
 
     # CANLI SKORBOARD
@@ -49,29 +49,32 @@ def main(page: ft.Page):
         f"SKOR: {goal_count}",
         size=44,
         weight=ft.FontWeight.BOLD,
-        color=ft.colors.AMBER_300
+        color=ft.Colors.AMBER_300
     )
 
     status_text = ft.Text(
         "MAÇ DEVAM EDİYOR...",
         size=18,
         weight=ft.FontWeight.BOLD,
-        color=ft.colors.WHITE
+        color=ft.Colors.WHITE
     )
+
+    val_text = ft.Text("---", size=70, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+    threshold_text = ft.Text("GOL EŞİĞİ: 600", size=13, color=ft.Colors.WHITE70)
 
     score_card = ft.Container(
         content=ft.Column(
             [
-                ft.Text("CANLI A0 SENSÖR DEĞERİ", size=13, color=ft.colors.WHITE60),
-                val_text := ft.Text("---", size=70, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
-                threshold_text := ft.Text("GOL EŞİĞİ: 600", size=13, color=ft.colors.WHITE70),
+                ft.Text("CANLI A0 SENSÖR DEĞERİ", size=13, color=ft.Colors.WHITE60),
+                val_text,
+                threshold_text,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        bgcolor=ft.colors.BLACK_48,
+        bgcolor=ft.Colors.BLACK_48,
         padding=20,
         border_radius=20,
-        border=ft.border.all(2, ft.colors.WHITE24),
+        border=ft.border.all(2, ft.Colors.WHITE24),
         width=300,
         alignment=ft.Alignment(0, 0)
     )
@@ -85,10 +88,10 @@ def main(page: ft.Page):
 
     reset_button = ft.ElevatedButton(
         text="SKORU SIFIRLA",
-        icon=ft.icons.REFRESH,
+        icon=ft.Icons.REFRESH,
         style=ft.ButtonStyle(
-            color=ft.colors.WHITE,
-            bgcolor=ft.colors.RED_800,
+            color=ft.Colors.WHITE,
+            bgcolor=ft.Colors.RED_800,
             padding=15
         ),
         on_click=reset_score
@@ -98,11 +101,11 @@ def main(page: ft.Page):
         stadium_icon,
         title_text,
         score_display,
-        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
         status_text,
-        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
         score_card,
-        ft.Divider(height=20, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=20, color=ft.Colors.TRANSPARENT),
         reset_button
     )
 
@@ -115,11 +118,11 @@ def main(page: ft.Page):
 
         # ⚽ GOL ANI! (Eşik İlk Kez Geçildiğinde)
         if is_alert:
-            page.bgcolor = ft.colors.GREEN_700
+            page.bgcolor = ft.Colors.GREEN_700
             status_text.value = "⚽ GOOOOLLLL! ⚽"
-            status_text.color = ft.colors.AMBER_300
-            stadium_icon.color = ft.colors.AMBER_300
-            score_card.border = ft.border.all(3, ft.colors.AMBER_400)
+            status_text.color = ft.Colors.AMBER_300
+            stadium_icon.color = ft.Colors.AMBER_300
+            score_card.border = ft.border.all(3, ft.Colors.AMBER_400)
 
             # Gol sadece 1 kez sayılsın ve LOKAL SES 1 kez çalsın
             if not was_alert:
@@ -128,24 +131,24 @@ def main(page: ft.Page):
                 score_display.value = f"SKOR: {goal_count}"
                 try:
                     goal_audio.play()
-                except Exception as e:
-                    print("Lokal ses çalma hatası:", e)
+                except Exception as ex:
+                    print("Lokal ses çalma hatası:", ex)
 
         else:
             # NORMAL SAHA DURUMU
             was_alert = False
-            page.bgcolor = ft.colors.GREEN_900
+            page.bgcolor = ft.Colors.GREEN_900
             status_text.value = "SENSÖR AKTİF - MAÇ DEVAM EDİYOR"
-            status_text.color = ft.colors.WHITE
-            stadium_icon.color = ft.colors.WHITE
-            score_card.border = ft.border.all(2, ft.colors.WHITE24)
+            status_text.color = ft.Colors.WHITE
+            stadium_icon.color = ft.Colors.WHITE
+            score_card.border = ft.border.all(2, ft.Colors.WHITE24)
 
         page.update()
 
     def update_ui_disconnected():
-        page.bgcolor = ft.colors.BLUE_GREY_900
+        page.bgcolor = ft.Colors.BLUE_GREY_900
         status_text.value = "🔌 ESP8266 İLE BAĞLANTI KOPTU"
-        status_text.color = ft.colors.RED_400
+        status_text.color = ft.Colors.RED_400
         val_text.value = "---"
         page.update()
 
@@ -188,5 +191,4 @@ def main(page: ft.Page):
     ws_thread.start()
 
 if __name__ == "__main__":
-    # Kök dizini assets alanı olarak bağlar
     ft.app(target=main, assets_dir=".")
