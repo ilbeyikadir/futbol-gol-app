@@ -17,7 +17,7 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.START
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = ft.colors.GREEN_900
+    page.bgcolor = ft.Colors.GREEN_900  # BÜYÜK 'C'
     page.scroll = ft.ScrollMode.AUTO
 
     # SES BİLEŞENİ
@@ -43,28 +43,28 @@ def main(page: ft.Page):
     # --- UI BİLEŞENLERİ ---
     
     stadium_icon = ft.Icon(
-        ft.icons.SPORTS_SOCCER,
+        ft.Icons.SPORTS_SOCCER,  # BÜYÜK 'I'
         size=50,
-        color=ft.colors.WHITE
+        color=ft.Colors.WHITE
     )
 
     title_text = ft.Text(
         "STADYUM GOL MONİTÖRÜ",
         size=20,
         weight=ft.FontWeight.BOLD,
-        color=ft.colors.WHITE70
+        color=ft.Colors.WHITE70
     )
 
     status_text = ft.Text(
         "MAÇ DEVAM EDİYOR...",
         size=15,
         weight=ft.FontWeight.BOLD,
-        color=ft.colors.WHITE
+        color=ft.Colors.WHITE
     )
 
     # DİNAMİK SENSÖR & EŞİK KARTI
-    val_text = ft.Text("---", size=45, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE)
-    threshold_label = ft.Text(f"GOL EŞİĞİ: {custom_threshold}", size=13, weight=ft.FontWeight.BOLD, color=ft.colors.AMBER_300)
+    val_text = ft.Text("---", size=45, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+    threshold_label = ft.Text(f"GOL EŞİĞİ: {custom_threshold}", size=13, weight=ft.FontWeight.BOLD, color=ft.Colors.AMBER_300)
 
     def update_threshold(delta):
         nonlocal custom_threshold
@@ -75,14 +75,14 @@ def main(page: ft.Page):
     threshold_controls = ft.Row(
         [
             ft.IconButton(
-                ft.icons.REMOVE_CIRCLE_OUTLINE,
-                icon_color=ft.colors.RED_400,
+                ft.Icons.REMOVE_CIRCLE_OUTLINE,
+                icon_color=ft.Colors.RED_400,
                 on_click=lambda e: update_threshold(-50)
             ),
             threshold_label,
             ft.IconButton(
-                ft.icons.ADD_CIRCLE_OUTLINE,
-                icon_color=ft.colors.GREEN_400,
+                ft.Icons.ADD_CIRCLE_OUTLINE,
+                icon_color=ft.Colors.GREEN_400,
                 on_click=lambda e: update_threshold(50)
             ),
         ],
@@ -92,17 +92,17 @@ def main(page: ft.Page):
     score_card = ft.Container(
         content=ft.Column(
             [
-                ft.Text("CANLI A0 SENSÖR DEĞERİ", size=11, color=ft.colors.WHITE60),
+                ft.Text("CANLI A0 SENSÖR DEĞERİ", size=11, color=ft.Colors.WHITE60),
                 val_text,
                 threshold_controls,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        bgcolor=ft.colors.BLACK45,
+        bgcolor=ft.Colors.BLACK45,
         padding=12,
         border_radius=15,
         width=320,
-        alignment=ft.alignment.center
+        alignment=ft.Alignment(0, 0)
     )
 
     # SEÇİLİ OYUNCU BİLGİ ETİKETİ
@@ -110,7 +110,7 @@ def main(page: ft.Page):
         f"⚽ GOL YAZILACAK: {selected_player[0]}",
         size=15,
         weight=ft.FontWeight.BOLD,
-        color=ft.colors.AMBER_300
+        color=ft.Colors.AMBER_300
     )
 
     player_list_column = ft.Column(spacing=8)
@@ -135,10 +135,10 @@ def main(page: ft.Page):
             
             select_btn = ft.ElevatedButton(
                 "SEÇİLİ" if is_selected else "SEÇ",
-                icon=ft.icons.CHECK_CIRCLE if is_selected else ft.icons.RADIO_BUTTON_UNCHECKED,
+                icon=ft.Icons.CHECK_CIRCLE if is_selected else ft.Icons.RADIO_BUTTON_UNCHECKED,
                 style=ft.ButtonStyle(
-                    color=ft.colors.BLACK if is_selected else ft.colors.WHITE,
-                    bgcolor=ft.colors.AMBER_400 if is_selected else ft.colors.WHITE24,
+                    color=ft.Colors.BLACK if is_selected else ft.Colors.WHITE,
+                    bgcolor=ft.Colors.AMBER_400 if is_selected else ft.Colors.WHITE24,
                 ),
                 on_click=lambda e, name=p_name: select_player_action(name)
             )
@@ -149,8 +149,8 @@ def main(page: ft.Page):
                         [
                             ft.Column(
                                 [
-                                    ft.Text(p_name, size=16, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
-                                    ft.Text(f"SKOR: {score}", size=14, weight=ft.FontWeight.BOLD, color=ft.colors.AMBER_200),
+                                    ft.Text(p_name, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                                    ft.Text(f"SKOR: {score}", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.AMBER_200),
                                 ],
                                 spacing=2
                             ),
@@ -158,8 +158,8 @@ def main(page: ft.Page):
                                 [
                                     select_btn,
                                     ft.IconButton(
-                                        ft.icons.DELETE_OUTLINE,
-                                        icon_color=ft.colors.RED_400,
+                                        ft.Icons.DELETE_OUTLINE,
+                                        icon_color=ft.Colors.RED_400,
                                         data=p_name,
                                         on_click=delete_player
                                     )
@@ -169,11 +169,10 @@ def main(page: ft.Page):
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                     ),
-                    bgcolor=ft.colors.GREEN_800 if is_selected else ft.colors.BLACK26,
+                    bgcolor=ft.Colors.GREEN_800 if is_selected else ft.Colors.BLACK26,
                     padding=ft.padding.symmetric(horizontal=12, vertical=8),
                     border_radius=12,
-                    # BURASI DÜZELTİLDİ: ft.border.all (küçük 'b')
-                    border=ft.border.all(2, ft.colors.AMBER_400) if is_selected else None,
+                    border=ft.border.all(2, ft.Colors.AMBER_400) if is_selected else None,
                     width=320
                 )
             )
@@ -206,8 +205,8 @@ def main(page: ft.Page):
             new_player_input,
             ft.ElevatedButton(
                 "Ekle",
-                icon=ft.icons.ADD,
-                style=ft.ButtonStyle(bgcolor=ft.colors.BLUE_700, color=ft.colors.WHITE),
+                icon=ft.Icons.ADD,
+                style=ft.ButtonStyle(bgcolor=ft.Colors.BLUE_700, color=ft.Colors.WHITE),
                 on_click=add_player
             )
         ],
@@ -221,10 +220,10 @@ def main(page: ft.Page):
 
     reset_button = ft.ElevatedButton(
         text="TÜM SKORLARI SIFIRLA",
-        icon=ft.icons.REFRESH,
+        icon=ft.Icons.REFRESH,
         style=ft.ButtonStyle(
-            color=ft.colors.WHITE,
-            bgcolor=ft.colors.RED_800,
+            color=ft.Colors.WHITE,
+            bgcolor=ft.Colors.RED_800,
             padding=12
         ),
         on_click=reset_all_scores
@@ -237,15 +236,15 @@ def main(page: ft.Page):
         stadium_icon,
         title_text,
         status_text,
-        ft.Divider(height=5, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=5, color=ft.Colors.TRANSPARENT),
         score_card,
-        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
         active_player_text,
-        ft.Divider(height=5, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=5, color=ft.Colors.TRANSPARENT),
         player_list_column,
-        ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
         add_player_row,
-        ft.Divider(height=15, color=ft.colors.TRANSPARENT),
+        ft.Divider(height=15, color=ft.Colors.TRANSPARENT),
         reset_button
     )
 
@@ -256,10 +255,10 @@ def main(page: ft.Page):
         val_text.value = str(raw_val)
 
         if is_alert:
-            page.bgcolor = ft.colors.GREEN_700
+            page.bgcolor = ft.Colors.GREEN_700
             status_text.value = "⚽ GOOOOLLLL! ⚽"
-            status_text.color = ft.colors.AMBER_300
-            stadium_icon.color = ft.colors.AMBER_300
+            status_text.color = ft.Colors.AMBER_300
+            stadium_icon.color = ft.Colors.AMBER_300
 
             if not was_alert:
                 was_alert = True
@@ -278,17 +277,17 @@ def main(page: ft.Page):
                         print("Ses çalma hatası:", ex)
         else:
             was_alert = False
-            page.bgcolor = ft.colors.GREEN_900
+            page.bgcolor = ft.Colors.GREEN_900
             status_text.value = "SENSÖR AKTİF - MAÇ DEVAM EDİYOR"
-            status_text.color = ft.colors.WHITE
-            stadium_icon.color = ft.colors.WHITE
+            status_text.color = ft.Colors.WHITE
+            stadium_icon.color = ft.Colors.WHITE
 
         page.update()
 
     def update_ui_disconnected():
-        page.bgcolor = ft.colors.BLUE_GREY_900
+        page.bgcolor = ft.Colors.BLUE_GREY_900
         status_text.value = "🔌 ESP8266 İLE BAĞLANTI KOPTU"
-        status_text.color = ft.colors.RED_400
+        status_text.color = ft.Colors.RED_400
         val_text.value = "---"
         page.update()
 
@@ -300,10 +299,7 @@ def main(page: ft.Page):
                     try:
                         data = json.loads(message)
                         raw_val = data.get("raw_value", 0)
-                        
-                        # Eşik kontrolü dinamik 'custom_threshold' ile kıyaslanıyor
                         is_alert = raw_val >= custom_threshold
-
                         trigger_goal_ui(raw_val, is_alert)
                     except Exception:
                         pass
