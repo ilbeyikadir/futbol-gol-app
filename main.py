@@ -17,7 +17,7 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.START
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = ft.Colors.GREEN_900  # BÜYÜK 'C'
+    page.bgcolor = ft.Colors.GREEN_900
     page.scroll = ft.ScrollMode.AUTO
 
     # SES BİLEŞENİ
@@ -43,7 +43,7 @@ def main(page: ft.Page):
     # --- UI BİLEŞENLERİ ---
     
     stadium_icon = ft.Icon(
-        ft.Icons.SPORTS_SOCCER,  # BÜYÜK 'I'
+        ft.Icons.SPORTS_SOCCER,
         size=50,
         color=ft.Colors.WHITE
     )
@@ -133,6 +133,7 @@ def main(page: ft.Page):
         for p_name, score in players.items():
             is_selected = (p_name == selected_player[0])
             
+            # GÜNCEL BUTTON YAZIMI ('text=' kaldırıldı)
             select_btn = ft.ElevatedButton(
                 "SEÇİLİ" if is_selected else "SEÇ",
                 icon=ft.Icons.CHECK_CIRCLE if is_selected else ft.Icons.RADIO_BUTTON_UNCHECKED,
@@ -218,8 +219,9 @@ def main(page: ft.Page):
             players[p] = 0
         render_players_ui()
 
+    # DÜZELTİLDİ: 'text=' parametresi kaldırıldı, doğrudan string verildi
     reset_button = ft.ElevatedButton(
-        text="TÜM SKORLARI SIFIRLA",
+        "TÜM SKORLARI SIFIRLA",
         icon=ft.Icons.REFRESH,
         style=ft.ButtonStyle(
             color=ft.Colors.WHITE,
